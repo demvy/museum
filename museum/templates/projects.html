@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+{% load staticfiles %}
+<head lang="en">
+    <meta charset="UTF-8">
+    <link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.10.7/css/jquery.dataTables.css"/>
+    <link rel="stylesheet" href="/static/font-awesome/css/font-awesome.css">
+    <link rel="stylesheet" href="/static/css/jquery.webui-popover.css">
+    <script type="text/javascript" src="//code.jquery.com/jquery-1.11.1.min.js"></script>
+    <script type="text/javascript" src="/static/js/jquery.webui-popover.js"></script>
+    <script type="text/javascript" src="//cdn.datatables.net/1.10.7/js/jquery.dataTables.min.js"></script>
+    <style>
+        .container {
+            width: 80%;
+        }
+        .highlight {
+            background-color: #cccccc !important;
+        }
+        .menu {
+            position: absolute;
+            height: 50%;
+            width: 5%;
+            right: 2%;
+            top: 25%;
+        }
+        .disabled {
+            color: gray;
+        }
+
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="content">
+    <table id="table1" cellspacing="0" width="100%">
+        <thead>
+        <tr>
+                                <th>ID</th>
+                                <th>Об’єкт</th>
+                                <th>Подія</th>
+                                <th>Час</th>
+                                <th>Особа</th>
+                                <th>Підтверджено</th>
+        </tr>
+        </thead>
+        <tbody>
+            {% for a in acts %}
+            <tr class="{% if a.approval %} t {% elif a.approval == False %} f {% else %} u {% endif %}" id="{{ a.id }}"><td>{{ a.id }}</td><td>{{ a.aim }}</td><td><a href="/activity/{{ a.id }}">{{ a.type }}</a></td><td>{{ a.time_stamp | date:"Y/m/d H:i:s" }}</td><td>{{ a.actor }}</td><td>{% if a.approval %} Так {% elif a.approval == False %} Ні {% else %} Очікується {% endif %}</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    </div>
+</div>
+<div class="menu">
+    <i onclick='approve()' title='Затвердити' class='disabled button0 fa fa-check fa-4x'></i>
+    <i onclick='reject()' title='Відхилити' class='disabled button1 fa fa-close fa-4x'></i>
+</div>
+<script type="text/javascript">
+        {% for a in acts %}
+        $text = "{% for b in a.set %}<b>{{ b.attr_label }}:</b> {{ b.attr_value }} <br> {% endfor %}"
+
+        $("#{{ a.id }}").webuiPopover({title:'{{ a.type }}',content:$text, trigger:'hover', width: '75%'});
+        {% endfor %}
+        var $table = $('table'),
+        $bodyCells = $table.find('tbody tr:first').children(),
+        colWidth;
+
+        var rows = $('tr').not(':first');
+
+        /* Create 'click' event handler for rows */
+        rows.on('click', function(e) {
+
+            /* Get current row */
+            var row = $(this);
+            $(".button0").addClass('disabled');
+            $(".button1").addClass('disabled');
+            if (row.hasClass('u')) {
+                $(".button0").removeClass('disabled');
+                $(".button1").removeClass('disabled');
+            }
+            rows.removeClass('highlight');
+            row.addClass('highlight');
+        });
+
+        var approve = function() {
+            if (!($(".button0").hasClass('disabled'))) {
+                var t = $(".highlight td:first-child").text();
+                var link = "/activities/approve" + t;
+                window.location.href = link;
+            }
+        };
+        var reject = function() {
+            if (!($(".button1").hasClass('disabled'))) {
+                var t = $(".highlight td:first-child").text();
+                var link = "/activities/reject" + t;
+                window.location.href = link;
+            }
+        };
+
+        $(document).ready(function() {
+            $('#table1').dataTable( {
+                "columns": [
+                    { "type": "num" },
+                    { "type": "html" },
+                    { "type": "html" },
+                    { "type": "date" },
+                    { "type": "html" },
+                    { "type": "html" },
+                ],
+                "language": {
+                    "emptyTable":     "Нема доступних записів у таблиці",
+                    "info":           "Відображеня _START_ - _END_ з _TOTAL_ записів",
+                    "infoEmpty":      "Відображення 0-0 з 0 записів",
+                    "infoFiltered":   "(фільтровано з _MAX_ записів)",
+                    "infoPostFix":    "",
+                    "thousands":      ",",
+                    "lengthMenu":     "Відображати _MENU_ записів",
+                    "loadingRecords": "Завантаження...",
+                    "processing":     "Обробка...",
+                    "search":         "Пошук:",
+                    "zeroRecords":    "Не знайдено записів",
+                    "paginate": {
+                        "first":      "Перша",
+                        "last":       "Остання",
+                        "next":       "Наступна",
+                        "previous":   "Попередня"
+                    },
+                    "aria": {
+                        "sortAscending":  ": сортування за зростанням",
+                        "sortDescending": ": сортування за спаданням",
+                    }
+                },
+
+            });
+        } );
+</script>
+</body>
+</html>
